@@ -16,18 +16,18 @@ class CreateUserNotificationTable extends Migration
         //user has many notification and one notification sent to many users
         Schema::create('user_notification', function (Blueprint $table) {
             $table->id();
+            $table->integer('notification_id')->unsigned();
             $table->integer('user_id')->unsigned();
-            $table->integer('notification_id')->unsigned();;
-            //add user_id column as forign key
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->onDelete('cascade');
              //add notification_id column as forign key
              $table->foreign('notification_id')
              ->references('id')
              ->on('notifications')
              ->onDelete('cascade');
+              //add user_id column as forign key
+            $table->foreign('user_id')
+            ->references('id')
+            ->on('users')
+            ->onDelete('cascade');
 
             //read to verify if user's notification marked as read
             //read =1 notification was read , read= 0 user doesn't read notification yet
