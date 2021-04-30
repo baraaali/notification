@@ -15,7 +15,7 @@ class AddDiviceTokenAndAcceptNotification extends Migration
     {   //add two colums at users table:device_token and accept_notification
         Schema::table('users', function (Blueprint $table) {
             //device_token to store tokens of devices to use it for push notification
-            $table->string('device_token')->nullable();
+            $table->longText('device_token')->nullable();
             //accept_notification for accept or not recieving notification
             //by default ==1 means notification accepted by user
             $table->integer('accept_notification')->default(1);
