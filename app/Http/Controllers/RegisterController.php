@@ -40,10 +40,7 @@ class RegisterController extends BaseController
             // $user = Auth::user();
             $user = User::where('email', $request->email)->first();
             $success['token'] = $user->createToken('myAppl')->accessToken;
-            //store device_token in database
-            $user->device_token =$success['token'];
-            $user->save();
-            //
+
             $success['name'] = $user->name;
 
             return $this->sendResponse($success ,'User login successfully' );

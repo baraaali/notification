@@ -19,7 +19,11 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 Route::post('register','App\Http\Controllers\RegisterController@register');
 Route::post('login', 'App\Http\Controllers\RegisterController@login');
+//send notification
 Route::post('push-notification', 'App\Http\Controllers\Notification\PushNotificationController@sendPushNotification');
+//store token
 Route::post('save-token', 'App\Http\Controllers\Notification\PushNotificationController@saveToken');
-Route::get('display-notifications/{id}', 'App\Http\Controllers\Notification\PushNotificationController@displayNotification');
+//show all notification for one user
+Route::get('display-notifications', 'App\Http\Controllers\Notification\PushNotificationController@displayNotifications');
+//show notification content
 Route::get('show-notification/{id}', 'App\Http\Controllers\Notification\PushNotificationController@showNotification');
