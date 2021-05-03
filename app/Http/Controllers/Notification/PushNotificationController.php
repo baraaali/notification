@@ -13,9 +13,12 @@ class PushNotificationController extends Controller
     //save device token
     public function saveToken (Request $request)
     {
+        $request->validate([
+            'token_fcm' =>'required'
+        ]);
         $user = Auth::user();
-        $user['device_token']=$request->token;
-        return response()->json(['token saved successfully.',$user->device_token]);
+        $user->update(['device_token'=>$request->token_fcm]);
+        return response()->json(['token saved successfully.']);
 
     }
 
@@ -38,8 +41,6 @@ class PushNotificationController extends Controller
         foreach ($list_users as $item) {
         $users_id[] = $item['id'];
         }
-        //save id notification with is users in notification_user table
-        $push_notification->users()->syncWithoutDetaching($users_id);
         //get tokens users
         $firebaseToken = $list_users->pluck('device_token')->all();
         //add server api key from firebase
@@ -48,7 +49,7 @@ class PushNotificationController extends Controller
          * send notification with firebase cloud messaging
          */
         $data = [
-            "registration_ids"=> "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiNjU5ZjRiNzlmMGZhYTQwY2QxMDA4MmRkMWRjOTI4ODA2ZmQ3YmM3ZmIyNWZjM2YzNDkzMzU5NGYzMmY0YjQyN2ViYTNkOTg5NzRkNzY4MTIiLCJpYXQiOjE2MTk3ODY1NDMuMzM0OTUsIm5iZiI6MTYxOTc4NjU0My4zMzQ5OTIsImV4cCI6MTY1MTMyMjU0My4zMTU4MTMsInN1YiI6IjIiLCJzY29wZXMiOltdfQ.iykGWgjqVqI-KBXdtP7IUT0RVKkpKWHV3rqo1pKNv83_pMJRszKk12MqoW1ckY4q-O7IAcYlA0ieY566emAzkptpyNxf7g0nMiN6QluGxKDoDTBkW_q_IBWtZR2JkFJ0mMqUvp8byPWVDW0OS2mw9bIo_vlHsQkegMzojJQ51mtSwQE6FgWJmbhNGfMq3465fjUObfqYe3aBNn8ktrFr8IgPklWSFXmLlJ9S8TrxICHbO_Eq4ueCNs3ZT7Ll-NtPkPN8z7hywq_CJbEV_MNuccUYPuzXw9a5ZcrCjV-buOcu_Dwa98tbPNNvNryjDnCashOJi211Tw1i2zEKraqdwFKZiQkPWsF2nCFNvgk6BvP9P27GU9HxXsIWxhJuUz6Bl6ea8eTbFNGSydVFrL2haFVY2thbrLCqBaShgawCDrR0_I-AsvmC7ApKAWs1fn7lErIh22Pu14dJnA4-ehu6FRb6ZYE28dQy_QgKgLpuwBZN3r_kC1LPQ50nZUtEkHPSvQb2BiNwbgtQvi8oXz0DDwOSpwYL327_qBsaNDGxx3NfaUehHlrTSnFVyMdobcxgTR09nYCTNVpqCzwjIkR_mgeIce5FpEd2E0kuEcWV-quyWi0VtfLxPWIo6CShXFi14-C710ofi-i6PWKuNOfrNWcL2luquUut77l4Si9E5sc",
+            "registration_ids"=>$firebaseToken,
             "notification" => [
                 "title" => $request->title,
                 "body" => $request->body,
@@ -63,7 +64,6 @@ class PushNotificationController extends Controller
         ];
 
         $ch = curl_init();
-
         curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -73,8 +73,15 @@ class PushNotificationController extends Controller
         curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
 
         $response = curl_exec($ch);
-        dd( $response);
+        if($response == 200) {
+        //save id notification with is users in notification_user table
+        $push_notification->users()->syncWithoutDetaching($users_id);
+        }
+        else{
+            dd('error',$response);
+       }
     }
+
 
 
     //display all notification for one user
@@ -85,9 +92,11 @@ class PushNotificationController extends Controller
         })->get();
 
        return response()->json([
-                'message'=>$notifications]);}
+                'message'=>$notifications]);
+    }
 
-    //show a specific notification
+
+    //show content of  specific notification
     public function showNotification($id){
         $notification = Notification::find($id);
         if (is_null($notification)) {
@@ -96,8 +105,41 @@ class PushNotificationController extends Controller
         return response()->json([ 'message'=>$notification]);
     }
 
+    //user want to stop receiving notfications
+    public function closeNotification(Request $request){
 
+            $user = Auth::user();
+            if( $user->accept_notification==0){
+                return response()->json(['notification already closed']);
+            }
+            else{
+                $user->accept_notification=0;
+                $user->save();
+                return response()->json(['notification closed successfully.']);
+            }
+            return response()->json(['error'=>'can\'t close notifications']);
+    }
 
+    //user want to allow recieving notifications
+    public function openNotification(Request $request){
+
+             $user = Auth::user();
+            if( $user->accept_notification==1){
+                return response()->json(['notifications already opened']);
+            }
+            else{
+                $user->accept_notification=1;
+                $user->save();
+                return response()->json(['notifications opened successfully.']);
+            }
+            return response()->json(['error'=>'can\'t close notifications']);
+
+    }
+    public function markasread($id){
+        $user=Auth::user();
+       $t=$user->notifications()->sync([$id => ['read' =>1]]);
+        dd($t);
+    }
 
 
 

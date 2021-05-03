@@ -28,6 +28,10 @@ Route::post('save-token', 'App\Http\Controllers\Notification\PushNotificationCon
 Route::get('display-notifications', 'App\Http\Controllers\Notification\PushNotificationController@displayNotifications');
 //show notification content
 Route::get('show-notification/{id}', 'App\Http\Controllers\Notification\PushNotificationController@showNotification');
+Route::post('close-notification', 'App\Http\Controllers\Notification\PushNotificationController@closeNotification');
+Route::post('open-notification', 'App\Http\Controllers\Notification\PushNotificationController@openNotification');
+Route::put('mark-asRead/{id}', 'App\Http\Controllers\Notification\PushNotificationController@markasread');
+
 });
 
 
