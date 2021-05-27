@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Notification;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Models\NotificationUser;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,15 +35,13 @@ class PushNotificationController extends Controller
         $push_notification->title=$request->input('title');
         $push_notification->body=$request->input('body');
         $push_notification->save();
-        //get list of users whose accept receiving notifications
-         $list_users=User::where('accept_notification',1)->whereNotNull('device_token')->get();
 
-        $users_id = [];
-        foreach ($list_users as $item) {
-        $users_id[] = $item['id'];
-        }
+        //get users
+        $users=User::where('accept_notification',1)->whereNotNull('device_token')->get();
+
         //get tokens users
-        $firebaseToken = $list_users->pluck('device_token')->all();
+        $firebaseToken =$users->pluck('device_token')->all();
+        //dd($firebaseToken);
         //add server api key from firebase
         $SERVER_API_KEY = "AAAAVCYn75s:APA91bHwJJgmeXdm5eJPSPt21xCbyoYRORkmLn-1PZ73oPUVK48a4heJpWC696bIAxzUlp6va46X_rqQdGN2qcrjDwGtO9qDtzh66GMDdcugjAIa05EOdkV82ms9oZzbjMWEgYNi8cuv";
         /**
@@ -50,6 +49,7 @@ class PushNotificationController extends Controller
          */
         $data = [
             "registration_ids"=>$firebaseToken,
+            //"to" =>"cYmwkUtnTH-7ztwP92PFef:APA91bF2Ji4yUxfCsgs_Ng0B5lwEsmqhJQd6IB_AZNSwbL6oYC8VViwbVHryt9pk8VyB1Sz3fItjC9X2Qxkz5__OT9Lain-vAh7zuSt8V6UZyMROb1FVQnDgs8FCTGO1Kv7FXvSb2l4k",
             "notification" => [
                 "title" => $request->title,
                 "body" => $request->body,
@@ -73,13 +73,11 @@ class PushNotificationController extends Controller
         curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
 
         $response = curl_exec($ch);
-        if($response == 200) {
+        //if($response == 200)
         //save id notification with is users in notification_user table
-        $push_notification->users()->syncWithoutDetaching($users_id);
-        }
-        else{
-            dd('error',$response);
-       }
+        $push_notification->users()->syncWithoutDetaching($users);
+        dd($response);
+
     }
 
 
@@ -141,6 +139,32 @@ class PushNotificationController extends Controller
         dd($t);
     }
 
+    public function deleteNotification($idNotification){
+        $user_id=Auth::id();
+        $notification=NotificationUser::where('user_id',$user_id)->where('notification_id',$idNotification)->first();
+        if($notification){
+            try {
+                $notification->delete();
+                return response()->json(['notification deleted successfully.']);
+            } catch (\Throwable $th) {
+                return response()->json(['error'=>'can\'t delete notification',$th->getMessage()]);
+            }
+        }
+        else{
+            return response()->json(['error'=>'this notification not founded']);
+        }
+    }
 
-
+    public function clearNotifications(Request $request){
+        $user_id=Auth::id();
+        $notifications=NotificationUser::where('user_id',$user_id)->get();
+        try {
+            foreach($notifications as $item){
+                $item->delete();
+            }
+            return response()->json(['notification deleted successfully.']);
+        }catch(\Throwable $th){
+            return response()->json(['error'=>'can\'t delete notifications',$th->getMessage()]);
+        }
+    }
 }

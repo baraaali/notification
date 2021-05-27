@@ -28,9 +28,16 @@ Route::post('save-token', 'App\Http\Controllers\Notification\PushNotificationCon
 Route::get('display-notifications', 'App\Http\Controllers\Notification\PushNotificationController@displayNotifications');
 //show notification content
 Route::get('show-notification/{id}', 'App\Http\Controllers\Notification\PushNotificationController@showNotification');
+//close receiving notifications
 Route::post('close-notification', 'App\Http\Controllers\Notification\PushNotificationController@closeNotification');
+//allow receive notifiations
 Route::post('open-notification', 'App\Http\Controllers\Notification\PushNotificationController@openNotification');
+//mark notification as read
 Route::put('mark-asRead/{id}', 'App\Http\Controllers\Notification\PushNotificationController@markasread');
+//delete notification for user
+Route::delete('delete-notification/{id}', 'App\Http\Controllers\Notification\PushNotificationController@deleteNotification');
+//delete all notifications for user
+Route::delete('clear-notifications', 'App\Http\Controllers\Notification\PushNotificationController@clearNotifications');
 
 });
 
