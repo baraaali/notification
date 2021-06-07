@@ -10,6 +10,6 @@ class Notification extends Model
     use HasFactory;
 
     public function users(){
-        return $this->belongsToMany('App\Models\User');
+        return $this->belongsToMany('App\Models\User')->withTimestamps();;
     }
 }

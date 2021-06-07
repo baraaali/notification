@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class NotificationUser extends Migration
+class CreateNotificationUserTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,6 @@ class NotificationUser extends Migration
      */
     public function up()
     {
-
         Schema::create('notification_user', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('notification_id')->unsigned();
@@ -21,6 +20,7 @@ class NotificationUser extends Migration
              //read to verify if user's notification marked as read
             //read =1 notification was read , read= 0 user doesn't read notification yet
             $table->integer('read')->default(0);
+            $table->timestamps();
              //add notification_id column as forign key
              $table->foreign('notification_id')
              ->references('id')
@@ -32,8 +32,6 @@ class NotificationUser extends Migration
             ->on('users')
             ->onDelete('cascade');
 
-
-            $table->timestamps();
         });
     }
 
