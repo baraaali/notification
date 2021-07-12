@@ -17,6 +17,7 @@ class CreateNotificationsTable extends Migration
             $table->increments('id');
             $table->string('title');
             $table->longText('body');
+            $table->string('image')->nullable();
             $table->timestamps();
         });
     }

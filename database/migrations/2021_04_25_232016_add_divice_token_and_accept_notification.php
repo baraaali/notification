@@ -30,7 +30,8 @@ class AddDiviceTokenAndAcceptNotification extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            $table->dropColumn('device_token');
+            $table->dropColumn('accept_notification');
         });
     }
 }
